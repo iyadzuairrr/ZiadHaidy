@@ -407,6 +407,25 @@ footer .ayah-ar{font-family:"Amiri","Scheherazade New","Traditional Arabic",seri
 footer .ayah-en{font-style:italic;font-size:clamp(9px,2.4vw,10.5px);line-height:1.4;margin:0;color:var(--blush)}
 footer .ayah-ref{font:600 5.5px/1.4 var(--serif);letter-spacing:.24em;text-transform:uppercase;margin:2px 0 0;color:var(--gold);opacity:.9}
 
+
+/* scroll hint (option B): a little wax-seal button in cream and gold, floating in the bottom-right corner clear of the centred text */
+.seal-cue{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:30;width:52px;height:52px;margin:0;padding:0;border:0;border-radius:50%;cursor:pointer;
+  color:var(--wine-700);background:radial-gradient(circle at 35% 30%,#fbf6ec,var(--paper-hi) 55%,var(--paper) 100%);
+  box-shadow:0 10px 22px -8px rgba(36,5,11,.65),0 0 0 1px var(--gold),inset 0 0 0 4px var(--paper-hi),inset 0 0 0 5px rgba(205,176,135,.7);
+  opacity:0;transform:translateY(18px) scale(.8);pointer-events:none;transition:opacity .8s ease,transform .9s cubic-bezier(.2,1.4,.4,1);-webkit-tap-highlight-color:transparent}
+.seal-cue.on{opacity:1;transform:none;pointer-events:auto}
+.seal-cue.on svg{animation:scBob 2.4s ease-in-out infinite}
+.seal-cue svg{position:absolute;inset:0;margin:auto;width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.seal-cue .sc-dia{fill:currentColor;stroke:none}
+.seal-cue .sc-chev2{opacity:.45}
+.seal-cue.on .sc-chev2{animation:scFade 2.4s ease-in-out infinite}
+.seal-cue .sc-ring{position:absolute;inset:-1px;border-radius:50%;border:1px solid var(--gold);opacity:0}
+.seal-cue.on .sc-ring{animation:scHalo 2.4s ease-out .4s infinite}
+@keyframes scBob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+@keyframes scFade{0%,100%{opacity:.2}50%{opacity:.7}}
+@keyframes scHalo{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.75);opacity:0}}
+.seal-cue.on:active{transform:translateY(1px) scale(.96)}
+@media (prefers-reduced-motion:reduce){.seal-cue.on svg,.seal-cue.on .sc-ring,.seal-cue.on .sc-chev2{animation:none}}
 </style>
 </head>
 <body>
@@ -631,6 +650,12 @@ footer .ayah-ref{font:600 5.5px/1.4 var(--serif);letter-spacing:.24em;text-trans
     <p class="ayah-ref">Qur&rsquo;an &nbsp;·&nbsp; Surah an-Naba&rsquo; &nbsp;·&nbsp; 78:8</p>
   </div>
 </footer>
+<!-- scroll hint: a small cream wax-seal button that appears when the auto-glide settles; tap it to glide on -->
+<button type="button" class="seal-cue" id="scroll-cue" aria-label="Scroll down for more">
+  <span class="sc-ring" aria-hidden="true"></span>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="sc-dia" d="M12 3.6l2.1 2.1L12 7.8 9.9 5.7z"/><path class="sc-chev" d="M7 11.2l5 5 5-5"/><path class="sc-chev2" d="M8.6 15.6l3.4 3.4 3.4-3.4"/></svg>
+</button>
+
 
 
 <script>
@@ -881,17 +906,28 @@ document.querySelectorAll('.qa button').forEach(btn => {
     const want = last.getBoundingClientRect().bottom + window.scrollY + 28 - window.innerHeight - COUNT_LIFT;
     return Math.max(top(count), Math.min(want, top(count) + count.offsetHeight - window.innerHeight));
   }
+  /* the little arrow: appears where the glide settles, leaves as soon as the guest scrolls on */
+  const cue = document.getElementById('scroll-cue');
+  let restAt = -1;
+  function showCue() { if (!cue || cancelled) return; restAt = window.scrollY; cue.classList.add('on'); }
+  const hideCue = () => { if (cue) cue.classList.remove('on'); restAt = -1; };
+  window.addEventListener('scroll', () => { if (restAt >= 0 && Math.abs(window.scrollY - restAt) > 24) hideCue(); }, { passive: true });
+  if (cue) cue.addEventListener('click', () => {
+    /* tap: glide on by most of a screen, gently */
+    hideCue(); cancelled = false;
+    glideTo(Math.min(window.scrollY + window.innerHeight * .8, document.documentElement.scrollHeight - window.innerHeight));
+  });
   function run() {
     if (cancelled || window.scrollY > 40) return;
     const first = countStop(); if (first == null) return;
     glideTo(first, () => {
       const details = document.querySelector('.details'); if (!details) return;
       /* a short glide that lands on the top of the details section, then the guest takes over */
-      t = setTimeout(() => glideTo(top(details) + DETAILS_DROP), HOLD2);
+      t = setTimeout(() => glideTo(top(details) + DETAILS_DROP, showCue), HOLD2);
     });
   }
   const arm = () => { cancelled = false; clearTimeout(t); t = setTimeout(run, HOLD); };
-  const watch = () => document.body.classList.contains('opened') ? arm() : stop();
+  const watch = () => document.body.classList.contains('opened') ? arm() : (stop(), hideCue());
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   new MutationObserver(watch).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 })();
