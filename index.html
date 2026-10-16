@@ -852,7 +852,7 @@ document.querySelectorAll('.qa button').forEach(btn => {
 (() => {
   /* option B: after the invitation opens, rest on it, glide down to the countdown (far enough to show the clock),
      rest again, glide to the details, rest, then drift slowly all the way to the end. Any touch or scroll by the guest stops it for good. */
-  const HOLD = 4000, HOLD2 = 2500, HOLD3 = 2200, DUR = 2000, CRUISE = 150; /* CRUISE: px per second for the final drift to the end */
+  const HOLD = 4000, HOLD2 = 2500, HOLD3 = 2200, DUR = 2000, CRUISE = 210; /* CRUISE: px per second for the final drift to the end */
   const COUNT_LIFT = 70, DETAILS_DROP = 58; /* fine-tuning of the two stops, in px */
   let t = 0, raf = 0, cancelled = false;
   const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
