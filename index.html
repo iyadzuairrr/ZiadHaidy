@@ -857,7 +857,7 @@ document.querySelectorAll('.qa button').forEach(btn => {
   /* option B: after the invitation opens, rest on it, glide down to the countdown (far enough to show the clock),
      rest again, then glide to the top of the details and stop. Any touch or scroll by the guest stops it for good. */
   const HOLD = 4000, HOLD2 = 2500, DUR = 2000;
-  const COUNT_LIFT = 70, DETAILS_DROP = 68; /* fine-tuning of the two stops, in px */
+  const COUNT_LIFT = 70, DETAILS_DROP = 58; /* fine-tuning of the two stops, in px */
   let t = 0, raf = 0, cancelled = false;
   const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
   const stop = () => { cancelled = true; clearTimeout(t); cancelAnimationFrame(raf); };
