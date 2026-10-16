@@ -849,8 +849,8 @@ document.querySelectorAll('.qa button').forEach(btn => {
 <script>
 (() => {
   /* option B: after the invitation opens, rest on it, glide down to the countdown (far enough to show the clock),
-     rest again, then slide smoothly through the details and stop. Any touch or scroll by the guest stops it for good. */
-  const HOLD = 3000, HOLD2 = 2500, DUR = 2000, SPEED = 320; /* SPEED: px per second while sliding through the details */
+     rest again, then glide to the top of the details and stop. Any touch or scroll by the guest stops it for good. */
+  const HOLD = 3500, HOLD2 = 2500, DUR = 2000;
   let t = 0, raf = 0, cancelled = false;
   const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
   const stop = () => { cancelled = true; clearTimeout(t); cancelAnimationFrame(raf); };
@@ -868,10 +868,10 @@ document.querySelectorAll('.qa button').forEach(btn => {
     raf = requestAnimationFrame(step);
   }
   function countStop() {
-    /* far enough down that the calendar, the running clock and the save-the-date button are all on screen */
+    /* just far enough that the running clock and its line sit at the bottom of the screen, calendar above */
     const count = document.querySelector('.count'); if (!count) return null;
-    const last = count.querySelector('.count-side .btn') || count.querySelector('.count-side') || count;
-    const want = last.getBoundingClientRect().bottom + window.scrollY + 36 - window.innerHeight;
+    const last = count.querySelector('.count-side .after') || count.querySelector('.count-side .clock') || count;
+    const want = last.getBoundingClientRect().bottom + window.scrollY + 28 - window.innerHeight;
     return Math.max(top(count), Math.min(want, top(count) + count.offsetHeight - window.innerHeight));
   }
   function run() {
@@ -879,12 +879,8 @@ document.querySelectorAll('.qa button').forEach(btn => {
     const first = countStop(); if (first == null) return;
     glideTo(first, () => {
       const details = document.querySelector('.details'); if (!details) return;
-      /* one continuous slide that passes through the whole details section and settles with its last card on screen */
-      t = setTimeout(() => {
-        const end = Math.max(top(details), top(details) + details.offsetHeight - window.innerHeight);
-        const dist = end - window.scrollY;
-        glideTo(end, null, Math.max(2600, dist / SPEED * 1000));
-      }, HOLD2);
+      /* a short glide that lands on the top of the details section, then the guest takes over */
+      t = setTimeout(() => glideTo(top(details)), HOLD2);
     });
   }
   const arm = () => { cancelled = false; clearTimeout(t); t = setTimeout(run, HOLD); };
